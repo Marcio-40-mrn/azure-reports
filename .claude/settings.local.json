@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(timeout 5)",
+      "Bash(node scripts/debug-testcases.mjs \"Marcio Rodrigo Rocha Nascimento\" 15)",
+      "Bash(node scripts/debug-suite.mjs)",
+      "Bash(node -e ' *)",
+      "Bash(node scripts/validate-export.mjs test-export.xlsx)",
+      "Bash(del *)"
+    ]
+  }
+}

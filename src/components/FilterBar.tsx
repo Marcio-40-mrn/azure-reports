@@ -70,6 +70,19 @@ export default function FilterBar({ onGenerate, loading }: Props) {
     )
   }
 
+  function selectAllProjects() {
+    const visible = new Set(filteredProjects.map((p) => p.name))
+    setSelectedProjects((prev) => Array.from(new Set([...prev, ...visible])))
+  }
+
+  function deselectAllProjects() {
+    const visible = new Set(filteredProjects.map((p) => p.name))
+    setSelectedProjects((prev) => prev.filter((name) => !visible.has(name)))
+  }
+
+  const allVisibleSelected =
+    filteredProjects.length > 0 && filteredProjects.every((p) => selectedProjects.includes(p.name))
+
   function toggleItemType(type: WorkItemType) {
     setItemTypes((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
@@ -218,6 +231,27 @@ export default function FilterBar({ onGenerate, loading }: Props) {
 
         {!projectsLoading && !projectsError && (
           <>
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                type="button"
+                onClick={allVisibleSelected ? deselectAllProjects : selectAllProjects}
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                {allVisibleSelected ? 'Remover todos' : 'Selecionar todos'}
+              </button>
+              {!allVisibleSelected && selectedProjects.length > 0 && (
+                <>
+                  <span className="text-xs text-gray-300">|</span>
+                  <button
+                    type="button"
+                    onClick={deselectAllProjects}
+                    className="text-xs text-red-500 hover:text-red-700 hover:underline"
+                  >
+                    Remover todos
+                  </button>
+                </>
+              )}
+            </div>
             <input
               type="text"
               value={projectSearch}
