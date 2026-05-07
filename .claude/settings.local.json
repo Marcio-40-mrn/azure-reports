@@ -7,7 +7,9 @@
       "Bash(node scripts/debug-suite.mjs)",
       "Bash(node -e ' *)",
       "Bash(node scripts/validate-export.mjs test-export.xlsx)",
-      "Bash(del *)"
+      "Bash(del *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"import\\('exceljs'\\).then\\(m => console.log\\('ok', typeof m.default\\)\\)\" --input-type=module)"
     ]
   }
 }

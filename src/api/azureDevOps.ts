@@ -352,19 +352,14 @@ export async function fetchWorkItems(params: {
     }
   }
 
-  // Filtra test cases: deve estar designado ao(s) assignee(s) selecionado(s) E
-  // (ter sido alterado no período OU ter outcome de execução no período)
+  // Exibe somente Test Cases com resultado de execução (Passed/Failed/Blocked).
+  // Test Cases em "Design" (não executados) são excluídos intencionalmente.
   return workItems.filter(item => {
     if (item.type !== 'Test Case') return true
-    const changed = item.changedDate ?? ''
-    const inPeriod = changed >= startDate && changed <= endDate + 'T23:59:59'
     const hasOutcome = EXECUTED_OUTCOMES.has((item.status ?? '').toLowerCase())
     const assignedToSelected =
       assignees.length === 0 ||
       assignees.some(a => item.assignedTo.toLowerCase().includes(a.toLowerCase()))
-    console.log(
-      `[Filter] tcId=${item.id} assignedTo="${item.assignedTo}" inPeriod=${inPeriod} hasOutcome=${hasOutcome} assignedToSelected=${assignedToSelected}`,
-    )
-    return (inPeriod || hasOutcome) && assignedToSelected
+    return hasOutcome && assignedToSelected
   })
 }

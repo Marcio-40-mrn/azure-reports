@@ -121,65 +121,34 @@ WHERE [System.AssignedTo] CONTAINS '{name}'
 
 For multiple assignees, run one WIQL query per assignee and merge/deduplicate results by ID.
 
-## Excel Export — estado atual
+## Excel Export — estado atual (✅ concluído em 07/05/2026)
 
-`ExportButton` (`src/components/ExportButton.tsx`) usa `xlsx` (SheetJS):
-- **Aba "Resumo"**: pivot com uma linha por colaborador e colunas por status (contagens)
-- **Uma aba por colaborador**: lista detalhada com ID, Título, Tipo, Status, Atribuído a, Projeto, Criado em, Alterado em
-- Larguras de coluna definidas manualmente via `!cols`
+`ExportButton` (`src/components/ExportButton.tsx`) usa **`exceljs`** (substituiu o `xlsx`):
+
+### Estrutura da planilha
+| Aba | Conteúdo |
+|---|---|
+| **Dashboard** | Banner azul + gráfico de pizza donut (SVG gerado em canvas → PNG embutido) + tabela de breakdown por colaborador com linha TOTAL |
+| **Resumo** | Pivot: uma linha por colaborador × colunas por status; linha TOTAL cinza; cabeçalho azul; freeze + autofilter |
+| **[Nome do colaborador]** | Tabela detalhada ordenada por Tipo → Status → Título; coluna **"Observações"** amarela (vazia, para preenchimento manual); cabeçalho azul; freeze + autofilter |
+
+### Detalhes técnicos
+- Gráfico gerado puramente via SVG matemático (sem DOM capture, sem dependências extras)
+- SVG convertido para PNG via `canvas` nativo do browser antes de embutir no Excel
+- Estilos: cabeçalho `#1E3A5F` branco bold; linhas alternadas `#EFF6FF`; total `#E5E7EB`; Observações `#FFF3CD` com borda âmbar
 - Nome do arquivo: `azure-report-YYYY-MM-DD.xlsx`
+- Bundle size: ~1.5 MB (exceljs é maior que xlsx — aceitável para uso interno)
 
-Para validar uma planilha exportada sem abrir o Excel:
+### Validar planilha exportada sem abrir o Excel
 ```bash
 node scripts/validate-export.mjs azure-report-2026-05-07.xlsx
 ```
 
 ---
 
-## 🟡 PRÓXIMA TASK — Melhorias na Exportação de Planilha
+## Regras de negócio — Test Cases
 
-### Objetivo
-Tornar a planilha exportada mais profissional e útil para apresentação/análise, sem alterar a estrutura de abas existente.
-
-### Melhorias planejadas
-
-**1. Estilo visual (cabeçalhos)**
-- Cabeçalho das colunas em negrito com fundo colorido (azul escuro, texto branco)
-- Linha de totais no final da aba "Resumo" com fundo cinza
-- Primeira linha congelada (`!freeze`) em todas as abas
-
-**2. AutoFilter**
-- Habilitar filtro automático em todas as abas (`!autofilter`) para facilitar análise no Excel
-
-**3. Aba de metadados**
-- Nova aba "Filtros Aplicados" com: período, projetos selecionados, assignees, tipos de item, data/hora da exportação
-- Útil para rastrear a origem do relatório
-
-**4. Totais na aba Resumo**
-- Linha "TOTAL" ao final com soma de cada coluna de status
-
-**5. Ordenação consistente**
-- Aba de cada colaborador ordenada por: Tipo → Status → Título
-
-### Como validar o resultado
-```bash
-# Gerar o relatório no browser, salvar o .xlsx e rodar:
-node scripts/validate-export.mjs azure-report-2026-05-07.xlsx
-```
-O script verifica: abas presentes, colunas corretas, ausência de células vazias obrigatórias, presença de freeze e autofilter, e imprime um resumo de contagens por aba.
-
-### Referência SheetJS para os recursos acima
-```js
-// Freeze primeira linha
-ws['!freeze'] = { xSplit: 0, ySplit: 1 }
-
-// AutoFilter cobrindo toda a faixa de dados
-ws['!autofilter'] = { ref: ws['!ref'] }
-
-// Estilo de célula (requer xlsx-js-style ou manipulação manual de cellXfs)
-// Alternativa: usar sheetjs-style-v2 (drop-in replacement do xlsx com suporte a styles)
-```
-
-> **Nota sobre estilos**: a lib `xlsx` free não suporta estilos de célula (negrito, cor de fundo).
-> Opções: (a) migrar para `xlsx-js-style` (fork compatível, MIT), (b) usar `exceljs` (API diferente, mais verbosa).
-> Discutir com o usuário antes de trocar a dependência.
+- **Somente** Test Cases com resultado de execução (`Passed`, `Failed`, `Blocked`) aparecem no relatório.
+- Test Cases em status `Design` (não executados) são **excluídos** intencionalmente — filtro em `fetchWorkItems` (`azureDevOps.ts`).
+- Outcomes são buscados via `fetchTestCaseData`: scan de Plans → Suites → test points usando `results.outcome` (API v7.1). O endpoint `test/runs?minLastUpdatedDate=...` **não existe** nessa versão — não usar.
+- Test Cases executados no período que não tiveram `System.ChangedDate` atualizado são capturados pelo scan de test points (`results.lastResultDetails.dateCompleted`).
