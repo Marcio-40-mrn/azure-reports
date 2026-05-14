@@ -48,17 +48,17 @@ Abra `http://localhost:5173` no navegador.
 
 | Filtro | Descrição |
 |---|---|
-| **Colaboradores** | Selecione um ou mais membros das equipes. Use a caixa de busca para filtrar por nome. |
+| **Colaboradores** | Selecione um ou mais membros das equipes. Use a caixa de busca para filtrar por nome. O botão **Remover todos** desmarca todos de uma vez. |
 | **Data Início / Data Fim** | Intervalo de `System.ChangedDate` dos itens. |
-| **Tipos de Item** | Marque os tipos desejados: Bug, Task, Product Backlog Item, Test Plan, Test Case. Para Test Cases, somente os executados com resultado **Passed**, **Failed** ou **Blocked** são exibidos — itens em *Design* (não executados) são excluídos automaticamente. |
+| **Tipos de Item** | Marque os tipos desejados: Bug, Task, Product Backlog Item, Test Plan, Test Case. O botão **Remover todos** desmarca todos de uma vez. Para Test Cases, somente os executados com resultado **Passed**, **Failed** ou **Blocked** são exibidos — itens em *Design* (não executados) são excluídos automaticamente. |
 | **Projetos** | Todos os projetos da organização são carregados automaticamente e selecionados por padrão. Desmarque os que não deseja incluir. |
 
 Após configurar os filtros, clique em **Gerar Relatório**. O botão fica habilitado somente quando todos os campos obrigatórios estão preenchidos.
 
 ### 2. Resultados
 
-- **Cards por colaborador** — cada membro selecionado recebe um card com gráfico de rosca e tabela de distribuição por status.
-- **Tabela completa** — lista todos os itens retornados com ID, título, tipo, status, responsável, projeto e datas.
+- **Cards por colaborador** — cada membro selecionado recebe um card com gráfico de rosca e tabela de distribuição por status. Com um único colaborador o card é exibido em largura maior; com dois ou mais, o layout passa para duas colunas.
+- **Tabela completa** — lista todos os itens retornados com ID, título, tipo, status, responsável, projeto e datas. Para Test Cases, o campo **Responsável** exibe quem efetivamente executou o teste (*Run By*), não quem foi designado.
 
 ### 3. Exportar para Excel
 
@@ -111,3 +111,4 @@ src/
 | Variáveis não reconhecidas | `.env` criado após `npm run dev` | Pare o servidor, edite o `.env` e execute `npm run dev` novamente |
 | Test Cases não aparecem | PAT sem escopo **Test Plans (Read)** | Gere um novo PAT incluindo esse escopo |
 | Test Cases aparecem como "Design" | PAT sem escopo **Test Plans (Read)** ou nenhum teste foi executado no período | Verifique o escopo do PAT e o intervalo de datas |
+| Test Case aparece sob o colaborador errado | O campo **Responsável** exibe quem *executou* o teste (*Run By*), não quem foi designado | Comportamento esperado — é intencional |

@@ -110,7 +110,17 @@ export default function FilterBar({ onGenerate, loading }: Props) {
         <div className="flex items-center justify-between mb-1">
           <label className="text-sm font-medium text-gray-600">Colaboradores</label>
           {selectedUsers.length > 0 && (
-            <span className="text-xs text-blue-600">{selectedUsers.length} selecionado(s)</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-blue-600">{selectedUsers.length} selecionado(s)</span>
+              <span className="text-xs text-gray-300">|</span>
+              <button
+                type="button"
+                onClick={() => setSelectedUsers([])}
+                className="text-xs text-red-500 hover:text-red-700 hover:underline"
+              >
+                Remover todos
+              </button>
+            </div>
           )}
         </div>
 
@@ -187,7 +197,18 @@ export default function FilterBar({ onGenerate, loading }: Props) {
 
       {/* Item types */}
       <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Tipos de Item</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-600">Tipos de Item</label>
+          {itemTypes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setItemTypes([])}
+              className="text-xs text-red-500 hover:text-red-700 hover:underline"
+            >
+              Remover todos
+            </button>
+          )}
+        </div>
         <div className="flex flex-col gap-1">
           {ITEM_TYPES.map((type) => (
             <label

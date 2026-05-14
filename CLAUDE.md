@@ -81,7 +81,7 @@ scripts/               # utilitários Node.js para debug e validação (não ent
 
 **State**: All filter state lives in `App.tsx` and is passed down to `FilterBar` (controlled inputs). Report results live in the `useReport` hook.
 
-**Test Case Outcomes**: Test Cases são buscados via WIQL (por `ChangedDate`) + scan de Plans→Suites→TestPoints (por `results.lastResultDetails.dateCompleted`). O campo de outcome é `results.outcome` (API v7.1) — nunca `results.lastResultOutcome` (campo legado que não existe mais). A função `fetchTestCaseData` faz os dois em uma única passagem e retorna `{ outcomeMap, executedIds }`.
+**Test Case Outcomes**: Test Cases são buscados via WIQL (por `ChangedDate`) + scan de Plans→Suites→TestPoints (por `results.lastResultDetails.dateCompleted`). O campo de outcome é `results.outcome` (API v7.1) — nunca `results.lastResultOutcome` (campo legado que não existe mais). A função `fetchTestCaseData` faz os dois em uma única passagem e retorna `{ outcomeMap, executedIds, runByMap }`. O `runByMap` contém `results.lastResultDetails.runBy.displayName` e sobrescreve `assignedTo` do Work Item com quem efetivamente executou o teste.
 
 ## TypeScript Interfaces (canonical shapes)
 
@@ -152,3 +152,4 @@ node scripts/validate-export.mjs azure-report-2026-05-07.xlsx
 - Test Cases em status `Design` (não executados) são **excluídos** intencionalmente — filtro em `fetchWorkItems` (`azureDevOps.ts`).
 - Outcomes são buscados via `fetchTestCaseData`: scan de Plans → Suites → test points usando `results.outcome` (API v7.1). O endpoint `test/runs?minLastUpdatedDate=...` **não existe** nessa versão — não usar.
 - Test Cases executados no período que não tiveram `System.ChangedDate` atualizado são capturados pelo scan de test points (`results.lastResultDetails.dateCompleted`).
+- O campo `assignedTo` de Test Cases é **sobrescrito** pelo `runBy` (`results.lastResultDetails.runBy.displayName`) — quem efetivamente executou o teste, não quem foi designado. `fetchTestCaseData` retorna agora um terceiro mapa: `runByMap: Map<number, string>`.

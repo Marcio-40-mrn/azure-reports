@@ -129,7 +129,10 @@ interface AzureTestPointRaw {
   results?: {
     outcome?: string            // campo real na API v7.1
     lastResultOutcome?: string  // campo legado (não existe mais)
-    lastResultDetails?: { dateCompleted?: string } | null
+    lastResultDetails?: {
+      dateCompleted?: string
+      runBy?: { displayName?: string } | null
+    } | null
   } | null
   lastResultDetails?: { dateCompleted?: string } | null
 }
@@ -143,9 +146,10 @@ async function fetchTestCaseData(
   projects: string[],
   startDate: string,
   endDate: string,
-): Promise<{ outcomeMap: Map<number, string>; executedIds: Set<number> }> {
+): Promise<{ outcomeMap: Map<number, string>; executedIds: Set<number>; runByMap: Map<number, string> }> {
   const outcomeMap = new Map<number, string>()
   const executedIds = new Set<number>()
+  const runByMap = new Map<number, string>()
   const latestDateMap = new Map<number, string>()
   // endDate é "YYYY-MM-DD"; para comparação com dateCompleted (ISO) precisamos cobrir o dia inteiro
   const endBound = endDate + 'T23:59:59'
@@ -203,8 +207,10 @@ async function fetchTestCaseData(
                   pt.results?.lastResultDetails?.dateCompleted ??
                   pt.lastResultDetails?.dateCompleted ??
                   ''
+                const runBy =
+                  pt.results?.lastResultDetails?.runBy?.displayName ?? ''
 
-                console.log(`[TestCaseData]   tcId=${rawId} outcome="${outcome}" dateCompleted="${dateCompleted}"`)
+                console.log(`[TestCaseData]   tcId=${rawId} outcome="${outcome}" dateCompleted="${dateCompleted}" runBy="${runBy}"`)
 
                 if (!outcome || !EXECUTED_OUTCOMES.has(outcome.toLowerCase())) continue
                 if (!dateCompleted || dateCompleted < startDate || dateCompleted > endBound) continue
@@ -214,6 +220,7 @@ async function fetchTestCaseData(
                 if (dateCompleted >= prev) {
                   outcomeMap.set(rawId, normalizeOutcome(outcome))
                   latestDateMap.set(rawId, dateCompleted)
+                  if (runBy) runByMap.set(rawId, runBy)
                 }
               }
             } catch (err) {
@@ -227,7 +234,8 @@ async function fetchTestCaseData(
 
   console.log(`[TestCaseData] executedIds (${executedIds.size}):`, Array.from(executedIds))
   console.log('[TestCaseData] outcomeMap:', Object.fromEntries(outcomeMap))
-  return { outcomeMap, executedIds }
+  console.log('[TestCaseData] runByMap:', Object.fromEntries(runByMap))
+  return { outcomeMap, executedIds, runByMap }
 }
 
 // ─── Work Items ───────────────────────────────────────────────────────────────
@@ -333,11 +341,13 @@ export async function fetchWorkItems(params: {
   }
 
   // Test Cases executados não atualizam System.ChangedDate — scan de test points
-  // retorna IDs executados no período e o mapa de outcomes em uma única passagem
+  // retorna IDs executados no período, o mapa de outcomes e o mapa de quem executou (Run By)
   let testCaseOutcomeMap = new Map<number, string>()
+  let testCaseRunByMap = new Map<number, string>()
   if (itemTypes.includes('Test Case')) {
-    const { outcomeMap, executedIds } = await fetchTestCaseData(projects, startDate, endDate)
+    const { outcomeMap, executedIds, runByMap } = await fetchTestCaseData(projects, startDate, endDate)
     testCaseOutcomeMap = outcomeMap
+    testCaseRunByMap = runByMap
     for (const id of executedIds) allIds.add(id)
     console.log('[fetchWorkItems] allIds após merge:', allIds.size)
   }
@@ -349,6 +359,9 @@ export async function fetchWorkItems(params: {
   for (const item of workItems) {
     if (item.type === 'Test Case' && testCaseOutcomeMap.has(item.id)) {
       item.status = testCaseOutcomeMap.get(item.id)!
+    }
+    if (item.type === 'Test Case' && testCaseRunByMap.has(item.id)) {
+      item.assignedTo = testCaseRunByMap.get(item.id)!
     }
   }
 

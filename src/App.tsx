@@ -24,10 +24,8 @@ export default function App() {
 
   const cardGridClass =
     itemsByAssignee.size === 1
-      ? 'grid grid-cols-1 max-w-md'
-      : itemsByAssignee.size === 2
-        ? 'grid grid-cols-1 lg:grid-cols-2'
-        : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+      ? 'grid grid-cols-1 max-w-xl'
+      : 'grid grid-cols-1 lg:grid-cols-2'
 
   return (
     <div className="min-h-screen bg-gray-100">
